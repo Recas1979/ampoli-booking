@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from "react";
 import Link from "next/link";
 
 export default function Home() {
@@ -8,45 +11,53 @@ export default function Home() {
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      position: "relative"
+      background: "#f5f5f5",
+      padding: "20px"
     }}>
-      {/* Pulsante HOME fisso in alto a destra */}
-      <Link href="/" style={{
-        position: "absolute",
-        top: 16, right: 24,
-        zIndex: 50,
-        textDecoration: "none"
-      }}>
-        <button style={{
-          padding: "8px 24px",
-          fontSize: 20,
-          borderRadius: "7px",
-          background: "#eee",
-          color: "#0057B8",
-          border: "2px solid #0057B8",
-          fontWeight: "bold",
-          cursor: "pointer"
-        }}>HOME</button>
-      </Link>
-
-      {/* Logo in alto */}
       <div style={{
-        position: "absolute",
-        top: "32px",
-        left: 0,
-        right: 0,
-        display: "flex",
-        justifyContent: "center"
+        background: "#fff",
+        borderRadius: "12px",
+        padding: "40px",
+        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+        textAlign: "center",
+        maxWidth: "400px",
+        width: "100%"
       }}>
-        <img
-          src="/logo.png"
-          alt="Logo"
-          style={{ height: "160px", width: "auto", objectFit: "contain" }}
-        />
+        <h1 style={{
+          color: "#0057B8",
+          fontSize: "28px",
+          fontWeight: "bold",
+          marginBottom: "30px"
+        }}>
+          Ampoli Booking
+        </h1>
+        
+        <p style={{
+          fontSize: "16px",
+          color: "#666",
+          marginBottom: "30px"
+        }}>
+          Sistema di prenotazione scrivanie
+        </p>
+
+        {/* Link alla pagina accesso */}
+        <Link 
+          href="/accesso"
+          style={{
+            display: "inline-block",
+            background: "#0057B8",
+            color: "#fff",
+            padding: "12px 24px",
+            borderRadius: "8px",
+            textDecoration: "none",
+            fontSize: "16px",
+            fontWeight: "bold",
+            transition: "background 0.3s"
+          }}
+        >
+          Accedi al Sistema
+        </Link>
       </div>
-      {/* Scritta centrale */}
-      <h1 style={{ marginTop: "89px", fontSize: "60px", paddingTop: "10px" }}>
-        Un caloroso benvenuto dalla AmpoliAPP Global Mega Corporation of the universe
-      </h1>
-      {/* Link alla pagina accesso */}
-      <
+    </main>
+  );
+}

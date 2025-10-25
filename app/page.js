@@ -1,6 +1,3 @@
-'use client';
-
-import { useState } from "react";
 import Link from "next/link";
 
 export default function Home() {
@@ -11,53 +8,46 @@ export default function Home() {
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      background: "#f5f5f5",
-      padding: "20px"
+      position: "relative"
     }}>
-      <div style={{
-        background: "#fff",
-        borderRadius: "12px",
-        padding: "40px",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-        textAlign: "center",
-        maxWidth: "400px",
-        width: "100%"
+      {/* Pulsante HOME fisso in alto a destra */}
+      <Link href="/" style={{
+        position: "absolute",
+        top: 16, right: 24,
+        zIndex: 50,
+        textDecoration: "none"
       }}>
-        <h1 style={{
+        <button style={{
+          padding: "8px 24px",
+          fontSize: 20,
+          borderRadius: "7px",
+          background: "#eee",
           color: "#0057B8",
-          fontSize: "28px",
+          border: "2px solid #0057B8",
           fontWeight: "bold",
-          marginBottom: "30px"
-        }}>
-          Ampoli Booking
-        </h1>
-        
-        <p style={{
-          fontSize: "16px",
-          color: "#666",
-          marginBottom: "30px"
-        }}>
-          Sistema di prenotazione scrivanie
-        </p>
+          cursor: "pointer"
+        }}>HOME</button>
+      </Link>
 
-        {/* Link alla pagina accesso */}
-        <Link 
-          href="/accesso"
-          style={{
-            display: "inline-block",
-            background: "#0057B8",
-            color: "#fff",
-            padding: "12px 24px",
-            borderRadius: "8px",
-            textDecoration: "none",
-            fontSize: "16px",
-            fontWeight: "bold",
-            transition: "background 0.3s"
-          }}
-        >
-          Accedi al Sistema
-        </Link>
+      {/* Logo in alto */}
+      <div style={{
+        position: "absolute",
+        top: "32px",
+        left: 0,
+        right: 0,
+        display: "flex",
+        justifyContent: "center"
+      }}>
+        <img
+          src="/logo.png"
+          alt="Logo"
+          style={{ height: "160px", width: "auto", objectFit: "contain" }}
+        />
       </div>
-    </main>
-  );
-}
+      {/* Scritta centrale */}
+      <h1 style={{ marginTop: "89px", fontSize: "30px", paddingTop: "10px" }}>
+        Un caloroso benvenuto dalla AmpoliAPP Global Mega Corporation of the universe
+      </h1>
+      {/* Link alla pagina accesso */}
+      <
+

@@ -34,6 +34,9 @@ export default function Prenotazione() {
   const [userName, setUserName] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Debug: controllo variabili ambiente
+  console.log("SUPABASE URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+
   // Controllo accesso e caricamento nome utente
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -51,31 +54,41 @@ export default function Prenotazione() {
   // Carica prenotazioni dal database
   const loadBookings = async () => {
     try {
+      console.log("Caricando prenotazioni dal database...");
       const { data, error } = await supabase
         .from('bookings')
         .select('*');
       
+      console.log("PRENOTAZIONI DAL DB:", data, error);
+      
       if (error) {
         console.error('Errore nel caricamento:', error);
+        alert('Errore nel caricamento delle prenotazioni');
         return;
       }
       
       setBookings(data || []);
+      console.log("Prenotazioni caricate:", data?.length || 0);
     } catch (error) {
-      console.error('Errore:', error);
+      console.error('Errore generale:', error);
     }
   };
 
-  // Carica prenotazioni all'inizio e quando cambia il mese
+  // Carica prenotazioni all'inizio
+  useEffect(() => {
+    loadBookings();
+  }, []);
+
+  // Ricarica prenotazioni quando cambia mese
   useEffect(() => {
     loadBookings();
   }, [monthOffset]);
 
-  // Ricarica prenotazioni ogni 10 secondi per vedere le prenotazioni degli altri
+  // Ricarica prenotazioni ogni 15 secondi per vedere quelle degli altri
   useEffect(() => {
     const interval = setInterval(() => {
       loadBookings();
-    }, 10000); // 10 secondi
+    }, 15000);
 
     return () => clearInterval(interval);
   }, []);
@@ -122,7 +135,7 @@ export default function Prenotazione() {
     </div>
   );
 
-  // Salva prenotazione nel database
+  // Gestione submit del form - SALVA NEL DATABASE
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -138,15 +151,20 @@ export default function Prenotazione() {
       alert("Inserisci il tuo nome (o nickname).");
       return;
     }
-    if (getPrenotatore(selectedDesk)) {
-      alert("Scrivania già prenotata!");
+
+    // Controllo se la scrivania è già occupata
+    const prenotatore = getPrenotatore(selectedDesk);
+    if (prenotatore) {
+      alert(`Scrivania già prenotata da ${prenotatore}!`);
       return;
     }
 
     setLoading(true);
     
     try {
-      // Salva nel database
+      console.log("Salvando prenotazione:", { date, desk: selectedDesk, name: name.trim() });
+      
+      // 1. INSERISCI NEL DATABASE
       const { error } = await supabase
         .from('bookings')
         .insert({
@@ -156,20 +174,24 @@ export default function Prenotazione() {
         });
       
       if (error) {
-        console.error('Errore nella prenotazione:', error);
-        alert('Errore nella prenotazione. Riprova.');
+        console.error('Errore nell inserimento:', error);
+        alert('Errore nel salvare la prenotazione. Riprova.');
         return;
       }
       
-      // Ricarica le prenotazioni per vedere subito quella nuova
+      console.log("Prenotazione salvata con successo!");
+      
+      // 2. RICARICA TUTTE LE PRENOTAZIONI DAL DATABASE
       await loadBookings();
       
+      // 3. Reset selezione
       setSelectedDesk(null);
-      alert(`Prenotazione effettuata! Scrivania n°${selectedDesk}`);
+      
+      alert(`✅ Prenotazione effettuata! Scrivania n°${selectedDesk} per il ${date}`);
       
     } catch (error) {
-      console.error('Errore:', error);
-      alert('Errore nella prenotazione. Riprova.');
+      console.error('Errore generale:', error);
+      alert('Errore nel sistema. Riprova.');
     } finally {
       setLoading(false);
     }
@@ -417,6 +439,11 @@ export default function Prenotazione() {
       {renderDesks(9, 12)}
       {renderDesks(13, 16)}
 
+      {/* INFO PRENOTAZIONI CARICATE */}
+      <div style={{fontSize: "12px", color: "#666", margin: "10px 0"}}>
+        Prenotazioni caricate: {bookings.length}
+      </div>
+
       {/* FORM DI PRENOTAZIONE */}
       <form
         onSubmit={handleSubmit}
@@ -446,7 +473,7 @@ export default function Prenotazione() {
         />
         <input
           readOnly
-          value={selectedDesk ? "Scrivania n° " + selectedDesk : "Seleziona una scrivania"}
+          value={selectedDesk ? `Scrivania n° ${selectedDesk}` : "Seleziona una scrivania"}
           style={{
             background: "#f7f7fa",
             fontWeight: "bold",

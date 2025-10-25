@@ -10,6 +10,25 @@ export default function Home() {
       justifyContent: "center",
       position: "relative"
     }}>
+      {/* Pulsante HOME fisso in alto a destra */}
+      <Link href="/" style={{
+        position: "absolute",
+        top: 16, right: 24,
+        zIndex: 50,
+        textDecoration: "none"
+      }}>
+        <button style={{
+          padding: "8px 24px",
+          fontSize: 20,
+          borderRadius: "7px",
+          background: "#eee",
+          color: "#0057B8",
+          border: "2px solid #0057B8",
+          fontWeight: "bold",
+          cursor: "pointer"
+        }}>HOME</button>
+      </Link>
+
       {/* Logo in alto */}
       <div style={{
         position: "absolute",
@@ -25,18 +44,9 @@ export default function Home() {
           style={{ height: "160px", width: "auto", objectFit: "contain" }}
         />
       </div>
-
       {/* Scritta centrale */}
-      <h1 style={{ marginTop: "120px", fontSize: "60px", paddingTop: "10px" }}>
-        Benvenuto nella tua Home Page!
+      <h1 style={{ marginTop: "89px", fontSize: "60px", paddingTop: "10px" }}>
+        Un caloroso benvenuto dalla AmpoliAPP Global Mega Corporation of the universe
       </h1>
-
       {/* Link alla pagina accesso */}
-      <Link href="/accesso">
-        <button style={{ marginTop: "50px", fontSize: "22px", padding: "12px 40px", borderRadius: "8px", background: "#0057B8", color: "white", border: "none", cursor: "pointer" }}>
-          Prenota una scrivania
-        </button>
-      </Link>
-    </main>
-  );
-}
+      <

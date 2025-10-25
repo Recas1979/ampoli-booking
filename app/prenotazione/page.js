@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { supabase } from "../../lib/supabase";
 
 // Utility: giorni ITA
 const weekdayLabels = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
@@ -31,6 +32,7 @@ export default function Prenotazione() {
   const [bookings, setBookings] = useState([]);
   const [name, setName] = useState("");
   const [userName, setUserName] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Controllo accesso e caricamento nome utente
   useEffect(() => {
@@ -41,10 +43,42 @@ export default function Prenotazione() {
         router.replace("/accesso");
       } else {
         setUserName(user);
-        setName(user); // PRECOMPILA IL CAMPO NOME
+        setName(user);
       }
     }
   }, [router]);
+
+  // Carica prenotazioni dal database
+  const loadBookings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*');
+      
+      if (error) {
+        console.error('Errore nel caricamento:', error);
+        return;
+      }
+      
+      setBookings(data || []);
+    } catch (error) {
+      console.error('Errore:', error);
+    }
+  };
+
+  // Carica prenotazioni all'inizio e quando cambia il mese
+  useEffect(() => {
+    loadBookings();
+  }, [monthOffset]);
+
+  // Ricarica prenotazioni ogni 10 secondi per vedere le prenotazioni degli altri
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadBookings();
+    }, 10000); // 10 secondi
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Calcola mese corrente + offset
   const today = new Date();
@@ -88,6 +122,59 @@ export default function Prenotazione() {
     </div>
   );
 
+  // Salva prenotazione nel database
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!date) {
+      alert("Seleziona il giorno dal calendario!");
+      return;
+    }
+    if (!selectedDesk) {
+      alert("Seleziona una scrivania.");
+      return;
+    }
+    if (!name.trim()) {
+      alert("Inserisci il tuo nome (o nickname).");
+      return;
+    }
+    if (getPrenotatore(selectedDesk)) {
+      alert("Scrivania già prenotata!");
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      // Salva nel database
+      const { error } = await supabase
+        .from('bookings')
+        .insert({
+          date: date,
+          desk: selectedDesk,
+          name: name.trim()
+        });
+      
+      if (error) {
+        console.error('Errore nella prenotazione:', error);
+        alert('Errore nella prenotazione. Riprova.');
+        return;
+      }
+      
+      // Ricarica le prenotazioni per vedere subito quella nuova
+      await loadBookings();
+      
+      setSelectedDesk(null);
+      alert(`Prenotazione effettuata! Scrivania n°${selectedDesk}`);
+      
+    } catch (error) {
+      console.error('Errore:', error);
+      alert('Errore nella prenotazione. Riprova.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Utility label mese italiano
   const monthNames = [
     "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
@@ -114,7 +201,8 @@ export default function Prenotazione() {
       }
       .home-btn-top {
         position: absolute;
-        top: 16px; right: 18px;
+        top: 16px; 
+        right: 18px;
         text-decoration: none;
         z-index: 100;
       }
@@ -129,16 +217,15 @@ export default function Prenotazione() {
         cursor: pointer;
       }
       @media (max-width: 420px) {
-        .home-btn-top button { font-size: 14px; padding: 7px 10px;}
-      }
-      .saluto-utente {
-        font-size: 21px;
-        color: #0057B8;
-        font-weight: bold;
-        margin: 22px 0 5px 0;
+        .home-btn-top button { 
+          font-size: 14px; 
+          padding: 7px 10px;
+        }
       }
       .mese-nav {
-        display: flex; align-items: center; gap: 13px;
+        display: flex; 
+        align-items: center; 
+        gap: 13px;
         margin: 18px 0 7px 0;
       }
       .mese-btn {
@@ -150,18 +237,20 @@ export default function Prenotazione() {
         font-weight: bold;
         font-size: 20px;
         cursor: pointer;
-        min-width: 33px
+        min-width: 33px;
       }
       .mese-txt {
         font-size: 20px;
         color: #0057b8;
-        font-weight: bold
+        font-weight: bold;
       }
       .grid-fermese {
         display: grid;
         grid-template-columns: repeat(5, minmax(39px, 1fr));
-        gap: 6px; width: 100%;
-        max-width: 470px; margin-bottom: 14px;
+        gap: 6px; 
+        width: 100%;
+        max-width: 470px; 
+        margin-bottom: 14px;
         margin-top: 10px;
       }
       .weekday-btn {
@@ -176,7 +265,7 @@ export default function Prenotazione() {
         outline: none;
         min-height: 34px;
         min-width: 39px;
-        transition: 0.15s
+        transition: 0.15s;
       }
       .weekday-btn.selected {
         background: #0057b8;
@@ -186,34 +275,46 @@ export default function Prenotazione() {
       .weekday-btn span {
         font-weight: normal;
         font-size: 11px;
-        color: #0057B8
+        color: #0057B8;
       }
       .weekday-btn.selected span {
         color: #fff;
       }
       .row-desks {
-        display: flex; justify-content: center; margin: 9px 0;
+        display: flex; 
+        justify-content: center; 
+        margin: 9px 0;
         flex-wrap: wrap;
         gap: 6px;
       }
       .desk-btn {
-        width: 45px; height: 45px;
-        margin: 0 5px; border-radius: 10px;
-        font-size: 17px; font-weight: bold;
+        width: 45px; 
+        height: 45px;
+        margin: 0 5px; 
+        border-radius: 10px;
+        font-size: 17px; 
+        font-weight: bold;
         background: #eee;
         color: #333;
         border: 1.7px solid #bbb;
         cursor: pointer;
         transition: 0.15s;
-        display: flex; align-items: center; justify-content: center; flex-direction: column;
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        flex-direction: column;
         position: relative;
       }
       .desk-btn.desk-selected {
-        background: #009fe3; color: #fff;
-        border: 2.5px solid #0057b8
+        background: #009fe3; 
+        color: #fff;
+        border: 2.5px solid #0057b8;
       }
       .desk-btn.desk-occupata {
-        background: #ffbcbc; color: #800; border: 2px solid #e87d7d; cursor: not-allowed;
+        background: #ffbcbc; 
+        color: #800; 
+        border: 2px solid #e87d7d; 
+        cursor: not-allowed;
       }
       .prenotatore-name {
         display: block;
@@ -228,7 +329,8 @@ export default function Prenotazione() {
       }
       .logo-center {
         margin: 24px 0;
-        display: flex; justify-content: center;
+        display: flex; 
+        justify-content: center;
       }
       .logo-center img {
         height: 73px;
@@ -236,13 +338,25 @@ export default function Prenotazione() {
         object-fit: contain;
       }
       @media (max-width: 470px) {
-        .grid-fermese { max-width: 99vw; }
-        .logo-center img { height: 56px; }
+        .grid-fermese { 
+          max-width: 99vw; 
+        }
+        .logo-center img { 
+          height: 56px; 
+        }
       }
       @media (max-width: 380px) {
-        .grid-fermese { gap: 3px;}
-        .desk-btn, .desk-btn.desk-selected, .desk-btn.desk-occupata { width: 38px; height: 38px; font-size:14px;}
-        .logo-center img { height: 40px;}
+        .grid-fermese { 
+          gap: 3px;
+        }
+        .desk-btn, .desk-btn.desk-selected, .desk-btn.desk-occupata { 
+          width: 38px; 
+          height: 38px; 
+          font-size:14px;
+        }
+        .logo-center img { 
+          height: 40px;
+        }
       }
       `}</style>
 
@@ -250,8 +364,6 @@ export default function Prenotazione() {
       <Link href="/" className="home-btn-top">
         <button>HOME</button>
       </Link>
-
-      {/* RIMOSSO IL SALUTO UTENTE */}
 
       {/* Titolo mese e navigazione */}
       <div className="mese-nav">
@@ -297,7 +409,7 @@ export default function Prenotazione() {
       {/* LOGO CENTRALE */}
       <div className="logo-center">
         <img
-          src="/logo.png"
+          src="https://via.placeholder.com/73x50/0057B8/FFFFFF?text=LOGO"
           alt="Logo"
         />
       </div>
@@ -307,33 +419,7 @@ export default function Prenotazione() {
 
       {/* FORM DI PRENOTAZIONE */}
       <form
-        onSubmit={e => {
-          e.preventDefault();
-          if (!date) {
-            alert("Seleziona il giorno dal calendario!");
-            return;
-          }
-          if (!selectedDesk) {
-            alert("Seleziona una scrivania.");
-            return;
-          }
-          if (!name.trim()) {
-            alert("Inserisci il tuo nome (o nickname).");
-            return;
-          }
-          if (getPrenotatore(selectedDesk)) {
-            alert("Scrivania già prenotata!");
-            return;
-          }
-          setBookings([...bookings, {
-            date,
-            desk: selectedDesk,
-            name: name.trim()
-          }]);
-          setSelectedDesk(null);
-          // Non serve resettare il nome se vuoi che resti precompilato
-          alert(`Prenotazione effettuata! Scrivania n°${selectedDesk}`);
-        }}
+        onSubmit={handleSubmit}
         style={{
           marginTop: "28px",
           display: "flex",
@@ -350,6 +436,13 @@ export default function Prenotazione() {
           required
           value={name}
           onChange={e => setName(e.target.value)}
+          style={{
+            padding: "10px",
+            border: "2px solid #ccc",
+            borderRadius: "6px",
+            fontSize: "16px",
+            width: "100%"
+          }}
         />
         <input
           readOnly
@@ -367,20 +460,20 @@ export default function Prenotazione() {
         />
         <button
           type="submit"
-          disabled={!selectedDesk || !date}
+          disabled={!selectedDesk || !date || loading}
           style={{
             padding: "10px 0",
             fontSize: "16px",
             fontWeight: "bold",
             borderRadius: "8px",
-            background: "#0057B8",
+            background: loading ? "#ccc" : "#0057B8",
             color: "#fff",
             border: "none",
-            cursor: selectedDesk && date ? "pointer" : "not-allowed",
-            opacity: selectedDesk && date ? 1 : 0.7,
+            cursor: (selectedDesk && date && !loading) ? "pointer" : "not-allowed",
+            opacity: (selectedDesk && date && !loading) ? 1 : 0.7,
             width: "100%"
           }}>
-          Prenota
+          {loading ? "Prenotando..." : "Prenota"}
         </button>
       </form>
     </main>

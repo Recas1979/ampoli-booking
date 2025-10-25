@@ -431,7 +431,7 @@ export default function Prenotazione() {
       {/* LOGO CENTRALE */}
       <div className="logo-center">
         <img
-          src="https://via.placeholder.com/73x50/0057B8/FFFFFF?text=LOGO"
+          src="logo.png"
           alt="Logo"
         />
       </div>

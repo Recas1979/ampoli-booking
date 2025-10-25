@@ -65,17 +65,17 @@ export default function Home() {
         lineHeight: "1.5"
       }}>
         <h1 style={{ 
-          fontSize: "40px" 
+          fontSize: "20px" 
         }}>
           Un caloroso benvenuto
         </h1>
         <h2 style={{ 
-          fontSize: "40px" 
+          fontSize: "20px" 
         }}>
           dalla
         </h2>
         <h2 style={{ 
-          fontSize: "40px" 
+          fontSize: "20px" 
         }}>
           AmpoliAPP Global Mega Corporation 
         </h2>
@@ -100,7 +100,7 @@ export default function Home() {
         onMouseOver={(e) => e.target.style.transform = "scale(1.05)"}
         onMouseOut={(e) => e.target.style.transform = "scale(1)"}
       >
-        Accedi al Sistema
+        Prenota
       </Link>
     </main>
   );

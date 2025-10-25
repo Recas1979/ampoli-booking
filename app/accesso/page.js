@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const ACCESS_CODE = "ILOVERCP";
+const ADMIN_CODE = "admin";
 
 export default function Accesso() {
   const [input, setInput] = useState("");
@@ -14,9 +15,22 @@ export default function Accesso() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (input.trim().toUpperCase() === ACCESS_CODE && nome.trim() !== "") {
+    
+    const inputCode = input.trim().toUpperCase();
+    const isValidCode = inputCode === ACCESS_CODE || inputCode === ADMIN_CODE.toUpperCase();
+    const isAdmin = inputCode === ADMIN_CODE.toUpperCase();
+
+    if (isValidCode && nome.trim() !== "") {
       sessionStorage.setItem("access_granted", "true");
       sessionStorage.setItem("user_name", nome.trim());
+      
+      // Salva il flag admin se ha usato il codice admin
+      if (isAdmin) {
+        sessionStorage.setItem("is_admin", "true");
+      } else {
+        sessionStorage.setItem("is_admin", "false");
+      }
+      
       router.push("/prenotazione");
     } else {
       setError(
@@ -53,9 +67,11 @@ export default function Accesso() {
           cursor: "pointer"
         }}>HOME</button>
       </Link>
+
       <h2 style={{ fontSize: "32px", marginBottom: "22px" }}>
         Inserisci nome e codice di accesso
       </h2>
+
       <form onSubmit={handleSubmit} style={{
         display: "flex",
         flexDirection: "column",
@@ -77,16 +93,22 @@ export default function Accesso() {
           }}
           required
         />
+
         <input
           type="password"
           placeholder="Codice"
           value={input}
           onChange={e => setInput(e.target.value)}
           style={{
-            padding: "13px", fontSize: "22px", borderRadius: "7px", border: "2px solid #bbb", textAlign: "center"
+            padding: "13px", 
+            fontSize: "22px", 
+            borderRadius: "7px", 
+            border: "2px solid #bbb", 
+            textAlign: "center"
           }}
           required
         />
+
         <button
           type="submit"
           style={{
@@ -102,6 +124,7 @@ export default function Accesso() {
         >
           Entra
         </button>
+
         {error && <div style={{ color: "crimson", fontSize: "16px" }}>{error}</div>}
       </form>
     </main>

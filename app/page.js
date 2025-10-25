@@ -65,19 +65,19 @@ export default function Home() {
         lineHeight: "1.5"
       }}>
         <h1 style={{ 
-          fontSize: "20px" 
+          fontSize: "60px" 
         }}>
-          Un caloroso benvenuto
+          RCP
         </h1>
         <h2 style={{ 
-          fontSize: "20px" 
+          fontSize: "40px" 
         }}>
-          dalla
+        -
         </h2>
         <h2 style={{ 
-          fontSize: "20px" 
+          fontSize: "30px" 
         }}>
-          AmpoliAPP Global Mega Corporation 
+          PRIVATE BOOKING 
         </h2>
       </div>
 

@@ -377,7 +377,7 @@ export default function Prenotazione() {
 
       {/* Saluto nome utente in alto */}
       {userName && (
-        <div className="saluto-utente">Ciao, {userName}!</div>
+        <div className="saluto-utente"> {userName}</div>
       )}
 
       {/* Titolo mese e navigazione */}

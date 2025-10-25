@@ -34,7 +34,7 @@ export default function Prenotazione() {
   const router = useRouter();
   
   const [monthOffset, setMonthOffset] = useState(0);
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10)); // Inizializza con oggi
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [selectedDesk, setSelectedDesk] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [name, setName] = useState("");
@@ -83,6 +83,49 @@ export default function Prenotazione() {
     }
   };
 
+  // Funzione per annullare una prenotazione
+  const cancelBooking = async (deskId) => {
+    const booking = bookings.find(b => b.date === date && b.desk_id === deskId);
+    
+    if (!booking) {
+      alert("Prenotazione non trovata!");
+      return;
+    }
+
+    // Verifica che sia la propria prenotazione
+    if (booking.name !== userName) {
+      alert("Puoi annullare solo le tue prenotazioni!");
+      return;
+    }
+
+    const confirmCancel = confirm(`Vuoi annullare la prenotazione della scrivania n°${deskId}?`);
+    if (!confirmCancel) return;
+
+    setLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .delete()
+        .eq('id', booking.id);
+
+      if (error) {
+        console.error('Errore annullamento:', error);
+        alert('Errore nell\'annullare la prenotazione:\n' + error.message);
+        return;
+      }
+
+      alert(`Prenotazione annullata! Scrivania n°${deskId} ora è libera.`);
+      await loadBookings();
+      
+    } catch (error) {
+      console.error('Errore generale:', error);
+      alert('Errore nell\'annullare la prenotazione');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Calcola mese corrente + offset
   const today = new Date();
   const firstOfMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
@@ -99,6 +142,12 @@ export default function Prenotazione() {
     return found ? found.name : null;
   };
 
+  // Verifica se è la propria prenotazione
+  const isMyBooking = (desk) => {
+    const prenotatore = getPrenotatore(desk);
+    return prenotatore === userName;
+  };
+
   // Griglia scrivanie
   const renderDesks = (start, end) => (
     <div className="row-desks">
@@ -106,18 +155,41 @@ export default function Prenotazione() {
         const deskNum = start + i;
         const prenotatore = getPrenotatore(deskNum);
         const occupata = !!prenotatore;
+        const isMyReservation = isMyBooking(deskNum);
+        
         return (
           <button
             key={deskNum}
-            disabled={occupata || loading}
-            onClick={() => setSelectedDesk(deskNum)}
-            className={`desk-btn${occupata ? " desk-occupata" : ""}${selectedDesk === deskNum ? " desk-selected" : ""}`}
+            disabled={loading}
+            onClick={() => {
+              if (occupata && isMyReservation) {
+                // Se è occupata ed è la mia prenotazione, annulla
+                cancelBooking(deskNum);
+              } else if (!occupata) {
+                // Se è libera, seleziona per prenotare
+                setSelectedDesk(deskNum);
+              } else {
+                // Se è occupata da altri, non fare nulla
+                alert("Scrivania già prenotata da " + prenotatore);
+              }
+            }}
+            className={`desk-btn${occupata ? " desk-occupata" : ""}${selectedDesk === deskNum ? " desk-selected" : ""}${isMyReservation ? " my-booking" : ""}`}
+            title={
+              occupata 
+                ? isMyReservation 
+                  ? `La tua prenotazione - Clicca per annullare`
+                  : `Prenotata da ${prenotatore}` 
+                : `Scrivania ${deskNum} - Clicca per selezionare`
+            }
           >
             {deskNum}
             {prenotatore && (
               <span className="prenotatore-name">
                 {prenotatore}
               </span>
+            )}
+            {isMyReservation && (
+              <span className="cancel-icon">✕</span>
             )}
           </button>
         );
@@ -250,7 +322,13 @@ export default function Prenotazione() {
         border: 2.5px solid #0057b8
       }
       .desk-btn.desk-occupata {
-        background: #ffbcbc; color: #800; border: 2px solid #e87d7d; cursor: not-allowed;
+        background: #ffbcbc; color: #800; border: 2px solid #e87d7d; cursor: pointer;
+      }
+      .desk-btn.my-booking {
+        background: #fff3cd; color: #856404; border: 2px solid #ffc107; cursor: pointer;
+      }
+      .desk-btn.my-booking:hover {
+        background: #ffecb5; border-color: #e0a800;
       }
       .prenotatore-name {
         display: block;
@@ -262,6 +340,14 @@ export default function Prenotazione() {
         max-width: 41px;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+      .cancel-icon {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        font-size: 10px;
+        color: #dc3545;
+        font-weight: bold;
       }
       .logo-center {
         margin: 24px 0;
@@ -278,8 +364,9 @@ export default function Prenotazione() {
       }
       @media (max-width: 380px) {
         .grid-fermese { gap: 3px;}
-        .desk-btn, .desk-btn.desk-selected, .desk-btn.desk-occupata { width: 38px; height: 38px; font-size:14px;}
+        .desk-btn, .desk-btn.desk-selected, .desk-btn.desk-occupata, .desk-btn.my-booking { width: 38px; height: 38px; font-size:14px;}
         .logo-center img { height: 40px;}
+        .cancel-icon { font-size: 8px; top: 1px; right: 1px; }
       }
       `}</style>
 
@@ -463,6 +550,11 @@ export default function Prenotazione() {
           {loading ? "Prenotando..." : "Prenota"}
         </button>
       </form>
+
+      {/* Legenda */}
+      <div style={{ marginTop: "20px", fontSize: "12px", color: "#666", textAlign: "center" }}>
+        <div>🟢 Libera | 🔴 Occupata | 🟡 Tua prenotazione (clicca per annullare)</div>
+      </div>
     </main>
   );
 }

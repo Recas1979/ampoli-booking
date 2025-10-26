@@ -58,7 +58,7 @@ export default function Home() {
 
     {/* Scritta centrale con a capo */}
       <div style={{ 
-        marginTop: "250px", 
+        marginTop: "100px", 
         textAlign: "center",
         color: "#0057B8",
         fontWeight: "bold",

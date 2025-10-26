@@ -62,20 +62,20 @@ export default function Home() {
         textAlign: "center",
         color: "#0057B8",
         fontWeight: "bold",
-        lineHeight: "1.5"
+        lineHeight: "1"
       }}>
         <h1 style={{ 
-          fontSize: "60px" 
+          fontSize: "20px" 
         }}>
           RCP
         </h1>
         <h2 style={{ 
-          fontSize: "40px" 
+          fontSize: "20px" 
         }}>
         -
         </h2>
         <h2 style={{ 
-          fontSize: "30px" 
+          fontSize: "20px" 
         }}>
           PRIVATE BOOKING 
         </h2>
